@@ -1,0 +1,86 @@
+#root {
+  margin: 0 auto;
+  text-align: center;
+}
+
+.logo {
+  height: 1.5rem;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0;
+  width: 100vw;
+  padding: 1rem 2rem;
+}
+
+h1 {
+  font-size: 1.5rem;
+}
+
+html {
+  font-size: 10px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+
+.form {
+  display:flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.input {
+  font-size: 1.6rem;
+  padding: 0.5rem 2rem;
+  line-height: 2.8rem;
+  border-radius: 20px;
+  border: 1px solid #ddd;
+}
+
+.button {
+  background-color: rgba(0,0,0,0.75);
+  color: white;
+  padding: 1rem 2rem;
+  border: 1px solid rgba(0,0,0,0.75);
+  border-radius: 20px;
+  font-size: 1.4rem;
+  cursor: pointer;
+  transition: background-color 250ms;
+}
+
+.button:hover {
+  background-color: rgba(0,0,0,0.85);
+}
+
+main ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem
+}
+
+main li {
+  width: 330px;
+  border: 1px solid rgba(255, 255, 255, 0.87);
+  border-radius: 1rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 1rem;
+}
+
+main h3 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+main p {
+  margin: 0.5rem 0;
+  color: #666;
+}
