@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import filmLogo from "./assets/film.svg";
 import "./App.css";
 import { fetchMovies, MoviesResponse } from "./api/getMovies.ts";
 
 function App() {
   const [query, setQuery] = useState<string>("");
-  const [movies, setMovies] = useState<MoviesResponse>({ results: [] });
+  const [movies, setMovies] = useState<MoviesResponse>();
   const API_KEY = "3c1a768f88d6d295711b2e22a860387b";
 
   const fetchInitialMovies = async () => {
@@ -19,19 +19,15 @@ function App() {
     }
   };
 
-  const handleSearch = async (e: React.FormEvent) => {
+  const handleSearch = async (e: FormEvent) => {
     e.preventDefault();
-    try {
-      const results = await fetchMovies(query, API_KEY);
-      setMovies(results);
-    } catch (error) {
-      console.error("Error searching for movies:", error);
-    }
+    const results = await fetchMovies(query, API_KEY);
+    if (results) setMovies(results);
+    else console.error("Error searching for movies:");
   };
 
-  // Fetch initial action movies on mount
   useEffect(() => {
-    fetchInitialMovies();
+    fetchInitialMovies().then();
   }, []);
 
   return (
@@ -57,18 +53,19 @@ function App() {
       </header>
       <main>
         <ul>
-          {movies.results.map((movie) => (
-            <li key={movie.id}>
-              <img
-                className="card--image"
-                src={`https://image.tmdb.org/t/p/w185_and_h278_bestv2/${movie.poster_path}`}
-                alt={movie.title + " poster"}
-              />
-              <h3>{movie.title}</h3>
-              <p>Release Date: {movie.release_date}</p>
-              <p>{movie.overview}</p>
-            </li>
-          ))}
+          {movies &&
+            movies.results.map((movie) => (
+              <li key={movie.id}>
+                <img
+                  className="card--image"
+                  src={`https://image.tmdb.org/t/p/w185_and_h278_bestv2/${movie.poster_path}`}
+                  alt={movie.title + " poster"}
+                />
+                <h3>{movie.title}</h3>
+                <p>Release Date: {movie.release_date}</p>
+                <p>{movie.overview}</p>
+              </li>
+            ))}
         </ul>
       </main>
     </>

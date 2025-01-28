@@ -25,7 +25,7 @@ export type MoviesResponse = {
 export async function fetchMovies(
   query: string,
   apiKey: string,
-): Promise<MoviesResponse> {
+): Promise<MoviesResponse | null> {
   if (!query) {
     throw new Error("Query cannot be empty");
   }
@@ -37,12 +37,11 @@ export async function fetchMovies(
   try {
     const response = await fetch(url);
     if (!response.ok) {
-      throw new Error(`Error fetching movies: ${response.statusText}`);
+      return null;
     }
-    const data = await response.json();
-    return data.results; // Return the array of movies
+    return await response.json();
   } catch (error) {
     console.error("Error in fetchMovies:", error);
-    throw error;
+    return null;
   }
 }
