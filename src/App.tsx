@@ -5,6 +5,7 @@ import { fetchMovies, MoviesResponse } from "./api/getMovies.ts";
 import { Genre, getGenres } from "./api/GetGenres.ts";
 
 function App() {
+  const [scrollSinceMove, setScrollSinceMove] = useState<number>(0);
   const [query, setQuery] = useState<string>("");
   const [genres, setGenres] = useState<Genre[]>([]);
   const [groupedMovies, setGroupedMovies] = useState<
@@ -15,7 +16,6 @@ function App() {
     index: number;
   } | null>(null);
   const API_KEY = "3c1a768f88d6d295711b2e22a860387b";
-
   const handleSearch = async (e: FormEvent) => {
     e.preventDefault();
     const results = await fetchMovies(query, API_KEY);
@@ -78,7 +78,7 @@ function App() {
         const nextGenreIndex = genres.findIndex((g) => g.id === genreId) + 1;
         if (nextGenreIndex < genres.length) {
           newGenreId = genres[nextGenreIndex].id;
-          newIndex = 0;
+          newIndex = focusedMovie.index;
         }
       } else if (event.key === "ArrowUp") {
         event.preventDefault();
@@ -86,7 +86,7 @@ function App() {
         const prevGenreIndex = genres.findIndex((g) => g.id === genreId) - 1;
         if (prevGenreIndex >= 0) {
           newGenreId = genres[prevGenreIndex].id;
-          newIndex = 0;
+          newIndex = focusedMovie.index;
         }
       }
 
@@ -104,6 +104,54 @@ function App() {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [focusedMovie, groupedMovies, genres]);
+
+  useEffect(() => {
+    const el = document.querySelector("main");
+    if (!el) return;
+    el.onwheel = (e) => {
+      console.log("delta: ", e.deltaY);
+      setScrollSinceMove(prev => prev + e.deltaY);
+    }
+  }, [])
+
+  useEffect(() => {
+    console.log("scrollsincemove is now", scrollSinceMove)
+    if (!focusedMovie) return;
+    if (scrollSinceMove < 240 && scrollSinceMove > -240) return;
+
+    if (scrollSinceMove >= 240) {
+      const { genreId, index } = focusedMovie;
+
+      let newIndex = index;
+      let newGenreId = genreId;
+      const nextGenreIndex = genres.findIndex((g) => g.id === genreId) + 1;
+      if (nextGenreIndex < genres.length) {
+        newGenreId = genres[nextGenreIndex].id;
+        newIndex = focusedMovie.index;
+      }
+
+      setFocusedMovie({ genreId: newGenreId, index: newIndex });
+      setScrollSinceMove(0);
+    }
+
+    if (scrollSinceMove <= -240) {
+      const { genreId, index } = focusedMovie;
+
+      let newIndex = index;
+      let newGenreId = genreId;
+      const prevGenreIndex = genres.findIndex((g) => g.id === genreId) - 1;
+      if (prevGenreIndex >= 0) {
+        newGenreId = genres[prevGenreIndex].id;
+        newIndex = focusedMovie.index;
+      }
+
+      setFocusedMovie({ genreId: newGenreId, index: newIndex });
+      setScrollSinceMove(0);
+    }
+
+  }, [scrollSinceMove])
+
+  console.log("sum: ", scrollSinceMove);
 
   return (
     <>
@@ -139,7 +187,7 @@ function App() {
                     tabIndex={0}
                     className={
                       focusedMovie?.genreId === genre.id &&
-                      focusedMovie?.index === movieIndex
+                        focusedMovie?.index === movieIndex
                         ? "focused"
                         : ""
                     }
