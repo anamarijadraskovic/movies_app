@@ -102,27 +102,28 @@ function App() {
     }
 
     setFocusedMovie({ genreId: newGenreId, index: newIndex });
-
-    document.querySelector(`#movie-${newGenreId}-${newIndex}`)?.scrollIntoView({
-      behavior: "smooth",
-      block: "nearest",
-      inline: "center",
-    });
   };
+
+  const availableHeight = window.innerHeight - 85;
+  const availableRows = Math.floor(availableHeight / 200);
+  const rowHeight = availableHeight / availableRows;
+  const halfRowHeight = rowHeight / 2;
 
   useEffect(() => {
     const el = document.querySelector("main");
     if (!el) return;
     el.onwheel = (e) => {
+      console.log(e.deltaY);
       setScrollSinceMove((prev) => prev + e.deltaY);
     };
   }, []);
 
   useEffect(() => {
     if (!focusedMovie) return;
-    if (scrollSinceMove < 240 && scrollSinceMove > -240) return;
+    if (scrollSinceMove < halfRowHeight && scrollSinceMove > -halfRowHeight)
+      return;
 
-    if (scrollSinceMove >= 240) {
+    if (scrollSinceMove >= halfRowHeight) {
       const { genreId, index } = focusedMovie;
 
       let newIndex = index;
@@ -137,7 +138,7 @@ function App() {
       setScrollSinceMove(0);
     }
 
-    if (scrollSinceMove <= -240) {
+    if (scrollSinceMove <= -halfRowHeight) {
       const { genreId, index } = focusedMovie;
 
       let newIndex = index;
@@ -198,7 +199,11 @@ function App() {
           </div>
         ) : (
           genres.map((genre) => (
-            <div key={genre.id} className="genre-container">
+            <div
+              key={genre.id}
+              className="genre-container"
+              style={{ height: `${rowHeight}px` }}
+            >
               <h2>{genre.name}</h2>
               <ul className="genre-sub-container">
                 {groupedMovies[genre.id]?.results.map((movie, movieIndex) => (

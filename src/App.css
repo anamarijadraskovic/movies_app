@@ -29,6 +29,8 @@ header {
   justify-content: space-between;
   width: 100vw;
   padding: 1rem 2rem;
+  height: 85px;
+  background-color: #25afe665;
 
   h1 {
     font-size: 1.5rem;
@@ -74,11 +76,18 @@ header {
   justify-content: center;
 }
 
+main {
+  max-height: calc(100vh - 85px);
+  overflow-y: auto;
+  scroll-snap-type: y mandatory;
+}
+
 .genre-container {
   display: flex;
   flex-direction: column;
   text-align: left;
   padding-bottom: 2rem;
+  scroll-snap-align: start;
 
   h2 {
     padding-left: 1rem;
@@ -92,6 +101,7 @@ header {
   padding: 1rem;
   overflow-x: auto;
   overflow-y: hidden;
+  scroll-snap-type: x mandatory;
 }
 
 .genre-sub-container::-webkit-scrollbar {
