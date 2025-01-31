@@ -19,7 +19,7 @@ export const MovieCard: React.FC<MovieCardProps> = ({
 }) => {
   const movieCardClassName = `movie-card ${focusedMovie?.genreId === genreId && focusedMovie?.index === movieIndex ? "focused" : ""}`;
 
-  return (
+  return !movie.backdrop_path ? null : (
     <li
       id={`movie-${genreId}-${movieIndex}`}
       tabIndex={0}

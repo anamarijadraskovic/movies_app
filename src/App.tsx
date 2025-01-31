@@ -1,11 +1,11 @@
 import { FormEvent, useEffect, useState } from "react";
 import filmLogo from "./assets/film.svg";
-import "./App.css";
 import { fetchMovies, MoviesResponse } from "./api/getMovies.ts";
 import { Genre, getGenres } from "./api/getGenres.ts";
 import { Loader } from "./components/Loader/Loader.tsx";
 import { getMoviesByGenre } from "./api/getMoviesByGenre.ts";
 import { MovieCard } from "./components/MovieCard/MovieCard.tsx";
+import "./App.css";
 
 function App() {
   const [genres, setGenres] = useState<Genre[]>([]);
@@ -21,11 +21,24 @@ function App() {
   const [query, setQuery] = useState<string>("");
   const [scrollSinceMove, setScrollSinceMove] = useState<number>(0);
 
+  const [searchResults, setSearchResults] = useState<MoviesResponse | null>(
+    null,
+  );
+
   const handleSearch = async (e: FormEvent) => {
     e.preventDefault();
+
+    if (!query.trim()) {
+      setSearchResults(null);
+      return;
+    }
+
     const results = await fetchMovies(query);
-    if (results) setGroupedMovies(results);
-    else console.error("Error searching for movies:");
+    if (results) {
+      setSearchResults(results);
+    } else {
+      console.error("Error searching for movies:");
+    }
   };
 
   useEffect(() => {
@@ -174,26 +187,40 @@ function App() {
           <div className="main-loader-wrapper">
             <Loader />
           </div>
+        ) : searchResults ? (
+          <div className="search-results">
+            <h2>Search Results</h2>
+            <ul className="movies-list">
+              {searchResults.results.map((movie, index) => (
+                <MovieCard
+                  key={movie.id}
+                  movie={movie}
+                  movieIndex={index}
+                  genreId={-1}
+                  focusedMovie={focusedMovie}
+                  setFocusedMovie={setFocusedMovie}
+                />
+              ))}
+            </ul>
+          </div>
         ) : (
-          <>
-            {genres.map((genre) => (
-              <div key={genre.id} className="genre-container">
-                <h2>{genre.name}</h2>
-                <ul className="genre-sub-container">
-                  {groupedMovies[genre.id]?.results.map((movie, movieIndex) => (
-                    <MovieCard
-                      key={movie.id}
-                      movie={movie}
-                      movieIndex={movieIndex}
-                      genreId={genre.id}
-                      focusedMovie={focusedMovie}
-                      setFocusedMovie={setFocusedMovie}
-                    />
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </>
+          genres.map((genre) => (
+            <div key={genre.id} className="genre-container">
+              <h2>{genre.name}</h2>
+              <ul className="genre-sub-container">
+                {groupedMovies[genre.id]?.results.map((movie, movieIndex) => (
+                  <MovieCard
+                    key={movie.id}
+                    movie={movie}
+                    movieIndex={movieIndex}
+                    genreId={genre.id}
+                    focusedMovie={focusedMovie}
+                    setFocusedMovie={setFocusedMovie}
+                  />
+                ))}
+              </ul>
+            </div>
+          ))
         )}
       </main>
     </>
