@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Movie } from "../../api/getMovies";
 import "./MovieCard.css";
 
@@ -8,6 +8,7 @@ interface MovieCardProps {
   genreId: number;
   focusedMovie: { genreId: number; index: number } | null;
   setFocusedMovie: (focus: { genreId: number; index: number }) => void;
+  onKeyDown: any;
 }
 
 export const MovieCard: React.FC<MovieCardProps> = ({
@@ -16,8 +17,15 @@ export const MovieCard: React.FC<MovieCardProps> = ({
   genreId,
   focusedMovie,
   setFocusedMovie,
+  onKeyDown,
 }) => {
-  const movieCardClassName = `movie-card ${focusedMovie?.genreId === genreId && focusedMovie?.index === movieIndex ? "focused" : ""}`;
+  const isFocused =
+    focusedMovie?.genreId === genreId && focusedMovie?.index === movieIndex;
+  const movieCardClassName = `movie-card ${isFocused ? "focused" : ""}`;
+
+  if (isFocused) {
+    document.getElementById(`movie-${genreId}-${movieIndex}`)?.focus();
+  }
 
   return !movie.backdrop_path ? null : (
     <li
@@ -25,6 +33,7 @@ export const MovieCard: React.FC<MovieCardProps> = ({
       tabIndex={0}
       className={movieCardClassName}
       onClick={() => setFocusedMovie({ genreId, index: movieIndex })}
+      onKeyDown={(e) => onKeyDown(e)}
     >
       <img
         className="movie-card-image"

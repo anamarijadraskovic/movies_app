@@ -89,7 +89,7 @@ header {
   display: flex;
   gap: 1rem;
   max-width: 100vw;
-  padding: 1rem 0;
+  padding: 1rem;
   overflow-x: auto;
   overflow-y: hidden;
 }

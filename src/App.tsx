@@ -55,7 +55,6 @@ function App() {
 
       for (const genre of genreResponse.genres) {
         const movies = await getMoviesByGenre(genre.id);
-        console.log(movies);
         if (movies) {
           moviesByGenre[genre.id] = movies;
         }
@@ -68,55 +67,48 @@ function App() {
     fetchAllMovies();
   }, []);
 
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (!focusedMovie) return;
+  const handleKeyDown = (event: any) => {
+    if (!focusedMovie) return;
+    event.preventDefault();
+
+    const { genreId, index } = focusedMovie;
+    const moviesList = groupedMovies[genreId]?.results || [];
+
+    let newIndex = index;
+    let newGenreId = genreId;
+
+    if (event.key === "ArrowRight") {
+      newIndex = Math.min(index + 1, moviesList.length - 1);
+      event.preventDefault();
+    } else if (event.key === "ArrowLeft") {
+      newIndex = Math.max(index - 1, 0);
+      event.preventDefault();
+    } else if (event.key === "ArrowDown") {
       event.preventDefault();
 
-      const { genreId, index } = focusedMovie;
-      const moviesList = groupedMovies[genreId]?.results || [];
-
-      let newIndex = index;
-      let newGenreId = genreId;
-
-      if (event.key === "ArrowRight") {
-        newIndex = Math.min(index + 1, moviesList.length - 1);
-        event.preventDefault();
-      } else if (event.key === "ArrowLeft") {
-        newIndex = Math.max(index - 1, 0);
-        event.preventDefault();
-      } else if (event.key === "ArrowDown") {
-        event.preventDefault();
-
-        const nextGenreIndex = genres.findIndex((g) => g.id === genreId) + 1;
-        if (nextGenreIndex < genres.length) {
-          newGenreId = genres[nextGenreIndex].id;
-          newIndex = focusedMovie.index;
-        }
-      } else if (event.key === "ArrowUp") {
-        event.preventDefault();
-
-        const prevGenreIndex = genres.findIndex((g) => g.id === genreId) - 1;
-        if (prevGenreIndex >= 0) {
-          newGenreId = genres[prevGenreIndex].id;
-          newIndex = focusedMovie.index;
-        }
+      const nextGenreIndex = genres.findIndex((g) => g.id === genreId) + 1;
+      if (nextGenreIndex < genres.length) {
+        newGenreId = genres[nextGenreIndex].id;
+        newIndex = focusedMovie.index;
       }
+    } else if (event.key === "ArrowUp") {
+      event.preventDefault();
 
-      setFocusedMovie({ genreId: newGenreId, index: newIndex });
+      const prevGenreIndex = genres.findIndex((g) => g.id === genreId) - 1;
+      if (prevGenreIndex >= 0) {
+        newGenreId = genres[prevGenreIndex].id;
+        newIndex = focusedMovie.index;
+      }
+    }
 
-      document
-        .querySelector(`#movie-${newGenreId}-${newIndex}`)
-        ?.scrollIntoView({
-          behavior: "smooth",
-          block: "nearest",
-          inline: "center",
-        });
-    };
+    setFocusedMovie({ genreId: newGenreId, index: newIndex });
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [focusedMovie, groupedMovies, genres]);
+    document.querySelector(`#movie-${newGenreId}-${newIndex}`)?.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+      inline: "center",
+    });
+  };
 
   useEffect(() => {
     const el = document.querySelector("main");
@@ -199,6 +191,7 @@ function App() {
                   genreId={-1}
                   focusedMovie={focusedMovie}
                   setFocusedMovie={setFocusedMovie}
+                  onKeyDown={handleKeyDown}
                 />
               ))}
             </ul>
@@ -216,6 +209,7 @@ function App() {
                     genreId={genre.id}
                     focusedMovie={focusedMovie}
                     setFocusedMovie={setFocusedMovie}
+                    onKeyDown={handleKeyDown}
                   />
                 ))}
               </ul>
