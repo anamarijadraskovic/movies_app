@@ -1,3 +1,5 @@
+import { API_KEY, dbBaseUrl } from "../constants";
+
 export type Movie = {
   popularity: number;
   vote_count: number;
@@ -24,13 +26,12 @@ export type MoviesResponse = {
 
 export async function fetchMovies(
   query: string,
-  apiKey: string,
 ): Promise<MoviesResponse | null> {
   if (!query) {
     throw new Error("Query cannot be empty");
   }
 
-  const url = `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&language=en-US&query=${encodeURIComponent(
+  const url = `${dbBaseUrl}search/movie?api_key=${API_KEY}&language=en-US&query=${encodeURIComponent(
     query,
   )}&page=1&include_adult=false`;
 

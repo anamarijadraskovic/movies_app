@@ -1,3 +1,5 @@
+import { dbBaseUrl } from "../constants";
+
 export type Genre = {
   id: number;
   name: string;
@@ -8,8 +10,7 @@ export type GenreResponse = {
 };
 
 export async function getGenres(): Promise<GenreResponse | null> {
-  const baseUrl = "https://api.themoviedb.org/3/";
-  const url = `${baseUrl}genre/movie/list?language=en`;
+  const url = `${dbBaseUrl}genre/movie/list?language=en`;
   const bearerToken =
     "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIzYzFhNzY4Zjg4ZDZkMjk1NzExYjJlMjJhODYwMzg3YiIsIm5iZiI6MTczODA4MjA4MC40NTgsInN1YiI6IjY3OTkwNzIwYTZlNDEyODNmMTJiNzBhYyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.2fDssb0IUWpjVcv8-afA_c-5vzmWWj-uYIBy8xUY2hQ";
 
