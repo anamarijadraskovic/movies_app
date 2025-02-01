@@ -1,46 +1,25 @@
-import { FormEvent, useEffect, useState } from "react";
-import filmLogo from "./assets/film.svg";
-import { fetchMovies, MoviesResponse } from "./api/getMovies.ts";
-import { Genre, getGenres } from "./api/getGenres.ts";
-import { Loader } from "./components/Loader/Loader.tsx";
-import { getMoviesByGenre } from "./api/getMoviesByGenre.ts";
-import { MovieCard } from "./components/MovieCard/MovieCard.tsx";
+import { useEffect, useState } from "react";
+
 import "./App.css";
+import { getGenres } from "./api/getGenres.ts";
+import { getMoviesByGenre } from "./api/getMoviesByGenre.ts";
+import filmLogo from "./assets/film.svg";
+import { Loader } from "./components/Loader/Loader.tsx";
+import { MovieCard } from "./components/MovieCard/MovieCard.tsx";
+import { headerHeight } from "./constants.ts";
+import { getCardWidth, getRowHeight, handleKeyNavigation } from "./helpers.ts";
+import { GenreWithRow } from "./types/genreTypes.ts";
+import { MoviesResponse } from "./types/movieTypes.ts";
 
 function App() {
-  const [genres, setGenres] = useState<Genre[]>([]);
+  const [genres, setGenres] = useState<GenreWithRow[]>([]);
   const [genresLoading, setGenresLoading] = useState<boolean>(true);
-  const [groupedMovies, setGroupedMovies] = useState<
-    Record<number, MoviesResponse>
-  >({});
+  const [groupedMovies, setGroupedMovies] = useState<MoviesResponse[]>([]);
   const [focusedMovie, setFocusedMovie] = useState<{
-    genreId: number;
-    index: number;
-  } | null>(null);
-  const [movieCardWidth, setMovieCardWidth] = useState(250);
-
-  const [query, setQuery] = useState<string>("");
+    row: number;
+    col: number;
+  } | null>({ row: 0, col: 0 });
   const [scrollSinceMove, setScrollSinceMove] = useState<number>(0);
-
-  const [searchResults, setSearchResults] = useState<MoviesResponse | null>(
-    null,
-  );
-
-  const handleSearch = async (e: FormEvent) => {
-    e.preventDefault();
-
-    if (!query.trim()) {
-      setSearchResults(null);
-      return;
-    }
-
-    const results = await fetchMovies(query);
-    if (results) {
-      setSearchResults(results);
-    } else {
-      console.error("Error searching for movies:");
-    }
-  };
 
   useEffect(() => {
     const fetchAllMovies = async () => {
@@ -50,17 +29,19 @@ function App() {
         return;
       }
 
-      setGenres(genreResponse.genres);
+      const genresWithRowNum = genreResponse.genres.map((genre, i) => {
+        return { ...genre, rowNum: i };
+      });
 
-      const moviesByGenre: Record<number, MoviesResponse> = {};
-
-      for (const genre of genreResponse.genres) {
+      const moviesByGenre: MoviesResponse[] = [];
+      for (const genre of genresWithRowNum) {
         const movies = await getMoviesByGenre(genre.id);
         if (movies) {
-          moviesByGenre[genre.id] = movies;
+          moviesByGenre[genre.rowNum] = movies;
         }
       }
 
+      setGenres(genresWithRowNum);
       setGroupedMovies(moviesByGenre);
       setGenresLoading(false);
     };
@@ -68,145 +49,67 @@ function App() {
     fetchAllMovies();
   }, []);
 
-  const handleKeyDown = (event: any) => {
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLLIElement>) => {
     if (!focusedMovie) return;
     event.preventDefault();
 
-    const { genreId, index } = focusedMovie;
-    const moviesList = groupedMovies[genreId]?.results || [];
+    let { row, col } = focusedMovie;
+    const moviesList = groupedMovies[row]?.results || [];
 
-    let newIndex = index;
-    let newGenreId = genreId;
+    let res = handleKeyNavigation(
+      event,
+      row,
+      col,
+      groupedMovies.length,
+      moviesList.length,
+    );
 
-    if (event.key === "ArrowRight") {
-      newIndex = Math.min(index + 1, moviesList.length - 1);
-      event.preventDefault();
-    } else if (event.key === "ArrowLeft") {
-      newIndex = Math.max(index - 1, 0);
-      event.preventDefault();
-    } else if (event.key === "ArrowDown") {
-      event.preventDefault();
-
-      const nextGenreIndex = genres.findIndex((g) => g.id === genreId) + 1;
-      if (nextGenreIndex < genres.length) {
-        newGenreId = genres[nextGenreIndex].id;
-        newIndex = focusedMovie.index;
-      }
-    } else if (event.key === "ArrowUp") {
-      event.preventDefault();
-
-      const prevGenreIndex = genres.findIndex((g) => g.id === genreId) - 1;
-      if (prevGenreIndex >= 0) {
-        newGenreId = genres[prevGenreIndex].id;
-        newIndex = focusedMovie.index;
-      }
-    }
-
-    setFocusedMovie({ genreId: newGenreId, index: newIndex });
+    setFocusedMovie({ row: res.row, col: res.col });
   };
 
   useEffect(() => {
-    const availableWidth = window.innerWidth;
-    const availableColumns = Math.floor(availableWidth / 250);
-    const columnWidth = availableWidth / availableColumns;
-    setMovieCardWidth(columnWidth);
-
-    console.log(availableWidth, availableColumns, columnWidth);
-  }, []);
-
-  const availableHeight = window.innerHeight - 85;
-  const availableRows = Math.floor(availableHeight / 200);
-  const rowHeight = availableHeight / availableRows;
-  const halfRowHeight = rowHeight / 2;
-
-  useEffect(() => {
-    const el = document.querySelector("main");
-    if (!el) return;
-    el.onwheel = (e) => {
-      console.log(e.deltaY);
-      setScrollSinceMove((prev) => prev + e.deltaY);
+    const main = document.querySelector("main");
+    if (!main) return;
+    main.onwheel = (event: WheelEvent) => {
+      setScrollSinceMove((prev) => prev + event.deltaY);
     };
   }, []);
 
+  const rowHeight = getRowHeight();
+  const cardWidth = getCardWidth();
+
   useEffect(() => {
     if (!focusedMovie) return;
+
+    const halfRowHeight = rowHeight / 2;
     if (scrollSinceMove < halfRowHeight && scrollSinceMove > -halfRowHeight)
       return;
 
     if (scrollSinceMove >= halfRowHeight) {
-      const { genreId, index } = focusedMovie;
-
-      let newIndex = index;
-      let newGenreId = genreId;
-      const nextGenreIndex = genres.findIndex((g) => g.id === genreId) + 1;
-      if (nextGenreIndex < genres.length) {
-        newGenreId = genres[nextGenreIndex].id;
-        newIndex = focusedMovie.index;
-      }
-
-      setFocusedMovie({ genreId: newGenreId, index: newIndex });
-      setScrollSinceMove(0);
+      let { row, col } = focusedMovie;
+      row = Math.min(row + 1, genres.length - 1);
+      setFocusedMovie({ row, col });
+    } else if (scrollSinceMove <= -halfRowHeight) {
+      let { row, col } = focusedMovie;
+      row = Math.max(row - 1, 0);
+      setFocusedMovie({ row, col });
     }
 
-    if (scrollSinceMove <= -halfRowHeight) {
-      const { genreId, index } = focusedMovie;
-
-      let newIndex = index;
-      let newGenreId = genreId;
-      const prevGenreIndex = genres.findIndex((g) => g.id === genreId) - 1;
-      if (prevGenreIndex >= 0) {
-        newGenreId = genres[prevGenreIndex].id;
-        newIndex = focusedMovie.index;
-      }
-
-      setFocusedMovie({ genreId: newGenreId, index: newIndex });
-      setScrollSinceMove(0);
-    }
+    setScrollSinceMove(0);
   }, [scrollSinceMove]);
 
   return (
     <>
-      <header>
+      <header style={{ height: `${headerHeight}px` }}>
         <div className="header-logo-container">
           <img src={filmLogo} className="logo" alt="Movie logo" />
           <h1>WATCH</h1>
         </div>
-        <form className="search-form" onSubmit={handleSearch}>
-          <input
-            className="search-input"
-            type="text"
-            name="query"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="i.e. Jurassic Park"
-          />
-          <button className="search-button" type="submit">
-            Search
-          </button>
-        </form>
       </header>
       <main>
         {genresLoading ? (
           <div className="main-loader-wrapper">
             <Loader />
-          </div>
-        ) : searchResults ? (
-          <div className="search-results">
-            <h2>Search Results</h2>
-            <ul className="movies-list">
-              {searchResults.results.map((movie, index) => (
-                <MovieCard
-                  key={movie.id}
-                  movie={movie}
-                  movieIndex={index}
-                  movieCardWidth={movieCardWidth}
-                  genreId={-1}
-                  focusedMovie={focusedMovie}
-                  setFocusedMovie={setFocusedMovie}
-                  onKeyDown={handleKeyDown}
-                />
-              ))}
-            </ul>
           </div>
         ) : (
           genres.map((genre) => (
@@ -217,18 +120,20 @@ function App() {
             >
               <h2>{genre.name}</h2>
               <ul className="genre-sub-container">
-                {groupedMovies[genre.id]?.results.map((movie, movieIndex) => (
-                  <MovieCard
-                    key={movie.id}
-                    movie={movie}
-                    movieCardWidth={movieCardWidth}
-                    movieIndex={movieIndex}
-                    genreId={genre.id}
-                    focusedMovie={focusedMovie}
-                    setFocusedMovie={setFocusedMovie}
-                    onKeyDown={handleKeyDown}
-                  />
-                ))}
+                {groupedMovies[genre.rowNum]?.results.map(
+                  (movie, movieIndex) => (
+                    <MovieCard
+                      key={movie.id}
+                      movie={movie}
+                      row={genre.rowNum}
+                      col={movieIndex}
+                      movieCardWidth={cardWidth}
+                      focusedMovie={focusedMovie}
+                      setFocusedMovie={setFocusedMovie}
+                      onKeyDown={handleKeyDown}
+                    />
+                  ),
+                )}
               </ul>
             </div>
           ))

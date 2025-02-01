@@ -1,13 +1,5 @@
 import { dbBaseUrl } from "../constants";
-
-export type Genre = {
-  id: number;
-  name: string;
-};
-
-export type GenreResponse = {
-  genres: Genre[];
-};
+import { GenreResponse } from "../types/genreTypes";
 
 export async function getGenres(): Promise<GenreResponse | null> {
   const url = `${dbBaseUrl}genre/movie/list?language=en`;

@@ -1,39 +1,38 @@
-import { Movie } from "../../api/getMovies";
+import { Movie } from "../../types/movieTypes";
 import "./MovieCard.css";
 
 interface MovieCardProps {
   movie: Movie;
-  movieIndex: number;
+  row: number;
+  col: number;
   movieCardWidth: number;
-  genreId: number;
-  focusedMovie: { genreId: number; index: number } | null;
-  setFocusedMovie: (focus: { genreId: number; index: number }) => void;
-  onKeyDown: any;
+  focusedMovie: { row: number; col: number } | null;
+  setFocusedMovie: (focus: { row: number; col: number }) => void;
+  onKeyDown: (e: React.KeyboardEvent<HTMLLIElement>) => void;
 }
 
 export const MovieCard: React.FC<MovieCardProps> = ({
   movie,
-  movieIndex,
+  row,
+  col,
   movieCardWidth,
-  genreId,
   focusedMovie,
   setFocusedMovie,
   onKeyDown,
 }) => {
-  const isFocused =
-    focusedMovie?.genreId === genreId && focusedMovie?.index === movieIndex;
+  const isFocused = focusedMovie?.row === row && focusedMovie?.col === col;
   const movieCardClassName = `movie-card ${isFocused ? "focused" : ""}`;
 
   if (isFocused) {
-    document.getElementById(`movie-${genreId}-${movieIndex}`)?.focus();
+    document.getElementById(`movie-${row}-${col}`)?.focus();
   }
 
   return !movie.backdrop_path ? null : (
     <li
-      id={`movie-${genreId}-${movieIndex}`}
+      id={`movie-${row}-${col}`}
       tabIndex={0}
       className={movieCardClassName}
-      onClick={() => setFocusedMovie({ genreId, index: movieIndex })}
+      onClick={() => setFocusedMovie({ row: row, col: col })}
       onKeyDown={(e) => onKeyDown(e)}
       style={{ minWidth: `${movieCardWidth}px` }}
     >
@@ -42,7 +41,7 @@ export const MovieCard: React.FC<MovieCardProps> = ({
         src={`https://image.tmdb.org/t/p/w200/${movie.backdrop_path}`}
         alt={`${movie.title} poster`}
       />
-      <h3>{movie.title}</h3>
+      <h3>{movie.title.slice(0, 20)}</h3>
     </li>
   );
 };
