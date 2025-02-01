@@ -53,10 +53,10 @@ function App() {
     if (!focusedMovie) return;
     event.preventDefault();
 
-    let { row, col } = focusedMovie;
+    const { row, col } = focusedMovie;
     const moviesList = groupedMovies[row]?.results || [];
 
-    let res = handleKeyNavigation(
+    const res = handleKeyNavigation(
       event,
       row,
       col,
@@ -85,18 +85,19 @@ function App() {
     if (scrollSinceMove < halfRowHeight && scrollSinceMove > -halfRowHeight)
       return;
 
+    const col = focusedMovie.col;
     if (scrollSinceMove >= halfRowHeight) {
-      let { row, col } = focusedMovie;
+      let { row } = focusedMovie;
       row = Math.min(row + 1, genres.length - 1);
       setFocusedMovie({ row, col });
     } else if (scrollSinceMove <= -halfRowHeight) {
-      let { row, col } = focusedMovie;
+      let { row } = focusedMovie;
       row = Math.max(row - 1, 0);
       setFocusedMovie({ row, col });
     }
 
     setScrollSinceMove(0);
-  }, [scrollSinceMove]);
+  }, [scrollSinceMove, focusedMovie, genres.length, rowHeight]);
 
   return (
     <>
