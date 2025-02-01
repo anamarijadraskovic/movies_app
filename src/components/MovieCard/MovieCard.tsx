@@ -1,10 +1,10 @@
-import React, { useEffect } from "react";
 import { Movie } from "../../api/getMovies";
 import "./MovieCard.css";
 
 interface MovieCardProps {
   movie: Movie;
   movieIndex: number;
+  movieCardWidth: number;
   genreId: number;
   focusedMovie: { genreId: number; index: number } | null;
   setFocusedMovie: (focus: { genreId: number; index: number }) => void;
@@ -14,6 +14,7 @@ interface MovieCardProps {
 export const MovieCard: React.FC<MovieCardProps> = ({
   movie,
   movieIndex,
+  movieCardWidth,
   genreId,
   focusedMovie,
   setFocusedMovie,
@@ -34,6 +35,7 @@ export const MovieCard: React.FC<MovieCardProps> = ({
       className={movieCardClassName}
       onClick={() => setFocusedMovie({ genreId, index: movieIndex })}
       onKeyDown={(e) => onKeyDown(e)}
+      style={{ minWidth: `${movieCardWidth}px` }}
     >
       <img
         className="movie-card-image"

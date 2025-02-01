@@ -96,7 +96,6 @@ main {
 
 .genre-sub-container {
   display: flex;
-  gap: 1rem;
   max-width: 100vw;
   padding: 1rem;
   overflow-x: auto;

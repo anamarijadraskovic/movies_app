@@ -17,6 +17,7 @@ function App() {
     genreId: number;
     index: number;
   } | null>(null);
+  const [movieCardWidth, setMovieCardWidth] = useState(250);
 
   const [query, setQuery] = useState<string>("");
   const [scrollSinceMove, setScrollSinceMove] = useState<number>(0);
@@ -104,6 +105,15 @@ function App() {
     setFocusedMovie({ genreId: newGenreId, index: newIndex });
   };
 
+  useEffect(() => {
+    const availableWidth = window.innerWidth;
+    const availableColumns = Math.floor(availableWidth / 250);
+    const columnWidth = availableWidth / availableColumns;
+    setMovieCardWidth(columnWidth);
+
+    console.log(availableWidth, availableColumns, columnWidth);
+  }, []);
+
   const availableHeight = window.innerHeight - 85;
   const availableRows = Math.floor(availableHeight / 200);
   const rowHeight = availableHeight / availableRows;
@@ -189,6 +199,7 @@ function App() {
                   key={movie.id}
                   movie={movie}
                   movieIndex={index}
+                  movieCardWidth={movieCardWidth}
                   genreId={-1}
                   focusedMovie={focusedMovie}
                   setFocusedMovie={setFocusedMovie}
@@ -210,6 +221,7 @@ function App() {
                   <MovieCard
                     key={movie.id}
                     movie={movie}
+                    movieCardWidth={movieCardWidth}
                     movieIndex={movieIndex}
                     genreId={genre.id}
                     focusedMovie={focusedMovie}
